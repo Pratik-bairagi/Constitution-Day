@@ -404,7 +404,7 @@
       drawCornerOrnament(W - 54, H - 82, Math.PI);
       drawCornerOrnament(54, H - 82, -Math.PI / 2);
 
-      drawAshokaChakra(W / 2, H / 2 + 15, 220, 0.055);
+      drawAshokaChakra(W / 2, H / 2 + 10, 220, 0.055);
 
       if (cleanLogoCanvas) {
         ctx.drawImage(cleanLogoCanvas, 95, 92, 165, 145);
@@ -467,84 +467,59 @@
         ctx.fillText(line, W / 2, 556 + idx * 41);
       });
 
-      // Left: Date & Certificate ID
-      ctx.textAlign = "left";
+      // Left: MD Signature Block (Dr. Vaseem Khan)
+      const mdSignX = 330;
+      if (cleanMdSignCanvas) {
+        ctx.drawImage(cleanMdSignCanvas, mdSignX - 110, 745, 220, 110);
+      }
+      ctx.strokeStyle = "#0f2557";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(mdSignX - 165, 862);
+      ctx.lineTo(mdSignX + 165, 862);
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#0f2557";
+      ctx.font = "bold 23px 'Playfair Display', serif";
+      ctx.fillText("Dr. Vaseem Khan", mdSignX, 892);
+
       ctx.fillStyle = "#334155";
-      ctx.font = "600 21px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText("दिनांक (Date): 26 नवम्बर 2026", 110, 885);
+      ctx.font = "600 18px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("Managing Director, R.N.T. Group of Colleges", mdSignX, 920);
+
+      // Right: Principal Signature Block (Dr. S.N.A. Jaferry)
+      const signCenterX = W - 330;
+      if (cleanSignCanvas) {
+        ctx.drawImage(cleanSignCanvas, signCenterX - 110, 745, 220, 110);
+      }
+      ctx.strokeStyle = "#0f2557";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(signCenterX - 165, 862);
+      ctx.lineTo(signCenterX + 165, 862);
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#0f2557";
+      ctx.font = "bold 23px 'Playfair Display', serif";
+      ctx.fillText("Dr. S.N.A. Jaferry", signCenterX, 892);
+
+      ctx.fillStyle = "#334155";
+      ctx.font = "600 18px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("Principal, R.N.T. Group of Colleges, Kapasan", signCenterX, 920);
+
+      // Center Below: Date & Certificate ID
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#0f2557";
+      ctx.font = "700 22px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("दिनांक (Date): 26 नवम्बर 2026", W / 2, 955);
 
       ctx.fillStyle = "#64748b";
       ctx.font = "600 18px monospace";
-      ctx.fillText("Certificate ID: " + (issuedCertId || "RNT-CONST26-PREVIEW"), 110, 920);
-
-      // Center Seal
-      const sealX = W / 2 - 40;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(sealX, 875, 54, 0, Math.PI * 2);
-      ctx.fillStyle = "#fef3c7";
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#b45309";
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(sealX, 875, 44, 0, Math.PI * 2);
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#92400e";
-      ctx.font = "bold 14px 'Cinzel', serif";
-      ctx.fillText("SAMVIDHAN", sealX, 868);
-      ctx.fillText("DIWAS", sealX, 885);
-      ctx.font = "bold 13px sans-serif";
-      ctx.fillText("2026", sealX, 903);
-      ctx.restore();
-
-      // MD Signature Block (Dr. Vaseem Khan)
-      const mdSignX = W / 2 + 235;
-      if (cleanMdSignCanvas) {
-        ctx.drawImage(cleanMdSignCanvas, mdSignX - 100, 770, 200, 105);
-      }
-      ctx.strokeStyle = "#0f2557";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(mdSignX - 145, 882);
-      ctx.lineTo(mdSignX + 145, 882);
-      ctx.stroke();
-
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#0f2557";
-      ctx.font = "bold 21px 'Playfair Display', serif";
-      ctx.fillText("Dr. Vaseem Khan", mdSignX, 910);
-
-      ctx.fillStyle = "#334155";
-      ctx.font = "600 17px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText("Managing Director, R.N.T. Group of Colleges", mdSignX, 936);
-
-      // Principal Signature Block (Dr. S.N.A. Jaferry)
-      const signCenterX = W - 245;
-      if (cleanSignCanvas) {
-        ctx.drawImage(cleanSignCanvas, signCenterX - 100, 770, 200, 105);
-      }
-      ctx.strokeStyle = "#0f2557";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(signCenterX - 145, 882);
-      ctx.lineTo(signCenterX + 145, 882);
-      ctx.stroke();
-
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#0f2557";
-      ctx.font = "bold 21px 'Playfair Display', serif";
-      ctx.fillText("Dr. S.N.A. Jaferry", signCenterX, 910);
-
-      ctx.fillStyle = "#334155";
-      ctx.font = "600 17px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText("Principal, R.N.T. Group of Colleges, Kapasan", signCenterX, 936);
+      ctx.fillText("Certificate ID: " + (issuedCertId || "RNT-CONST26-PREVIEW"), W / 2, 985);
 
       // Bottom small department credit note
-      ctx.textAlign = "center";
       ctx.fillStyle = "#64748b";
       ctx.font = "500 16px 'Playfair Display', sans-serif";
       ctx.fillText("Certificates are generated by CS Department RNT PG College, Kapasan", W / 2, 1048);
