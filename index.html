@@ -238,7 +238,7 @@
   </div>
 
   <script>
-    // Replace with your deployed Google Apps Script Web App URL
+    // यहाँ अपना Deployed Google Apps Script Web App URL पेस्ट करें
     const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
     const canvas = document.getElementById("certCanvas");
@@ -254,11 +254,29 @@
 
     let cleanLogoCanvas = null;
     let cleanSignCanvas = null;
+    let cleanMdSignCanvas = null;
     let issuedCertId = "";
 
-    // Load and strip solid black background from RNT_Group_Logo_01-removebg-preview.png
+    function removeWhiteBackground(img, threshold = 235) {
+      const off = document.createElement("canvas");
+      off.width = img.width;
+      off.height = img.height;
+      const octx = off.getContext("2d");
+      octx.drawImage(img, 0, 0);
+      const imgData = octx.getImageData(0, 0, off.width, off.height);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] > threshold && d[i + 1] > threshold && d[i + 2] > threshold) {
+          d[i + 3] = 0;
+        }
+      }
+      octx.putImageData(imgData, 0, 0);
+      return off;
+    }
+
+    // लोगो लोड करें और बाहरी काला बैकग्राउंड पारदर्शी (transparent) बनाएं
     const logoImg = new Image();
-    logoImg.src = "./RNT_Group_Logo_01-removebg-preview.png";
+    logoImg.src = "./RNT_Group_Logo_01-removebg-preview.jpg";
     logoImg.onload = () => {
       const off = document.createElement("canvas");
       off.width = logoImg.width;
@@ -267,7 +285,6 @@
       octx.drawImage(logoImg, 0, 0);
       const imgData = octx.getImageData(0, 0, off.width, off.height);
       const d = imgData.data;
-      // Flood-fill from corners so only outer black background becomes transparent (preserves inner black torch/book)
       const w = off.width, h = off.height;
       const visited = new Uint8Array(w * h);
       const stack = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]];
@@ -288,24 +305,19 @@
       drawCertificate();
     };
 
-    // Load Principal signature and remove near-white background so it sits cleanly over the seal
+    // प्राचार्य महोदय के हस्ताक्षर लोड करें
     const signImg = new Image();
     signImg.src = "./SIgn Pincipal.png";
     signImg.onload = () => {
-      const off = document.createElement("canvas");
-      off.width = signImg.width;
-      off.height = signImg.height;
-      const octx = off.getContext("2d");
-      octx.drawImage(signImg, 0, 0);
-      const imgData = octx.getImageData(0, 0, off.width, off.height);
-      const d = imgData.data;
-      for (let i = 0; i < d.length; i += 4) {
-        if (d[i] > 235 && d[i + 1] > 235 && d[i + 2] > 235) {
-          d[i + 3] = 0;
-        }
-      }
-      octx.putImageData(imgData, 0, 0);
-      cleanSignCanvas = off;
+      cleanSignCanvas = removeWhiteBackground(signImg, 235);
+      drawCertificate();
+    };
+
+    // MD सर (Dr. Vaseem Khan) के हस्ताक्षर लोड करें
+    const mdSignImg = new Image();
+    mdSignImg.src = "./MD Sign.png";
+    mdSignImg.onload = () => {
+      cleanMdSignCanvas = removeWhiteBackground(mdSignImg, 235);
       drawCertificate();
     };
 
@@ -357,7 +369,6 @@
       const H = canvas.height;
       ctx.clearRect(0, 0, W, H);
 
-      // 1. Warm Ivory Parchment Background
       const bgGrad = ctx.createLinearGradient(0, 0, W, H);
       bgGrad.addColorStop(0, "#fffdf9");
       bgGrad.addColorStop(0.5, "#fefce8");
@@ -365,13 +376,12 @@
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // 2. Subtle Tricolor Top & Bottom Accent Ribbons
       const stripeH = 14;
-      ctx.fillStyle = "#ea580c"; // Saffron
+      ctx.fillStyle = "#ea580c";
       ctx.fillRect(28, 28, W - 56, stripeH);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(28, 28 + stripeH, W - 56, stripeH);
-      ctx.fillStyle = "#15803d"; // Green
+      ctx.fillStyle = "#15803d";
       ctx.fillRect(28, 28 + stripeH * 2, W - 56, stripeH);
 
       ctx.fillStyle = "#ea580c";
@@ -381,7 +391,6 @@
       ctx.fillStyle = "#15803d";
       ctx.fillRect(28, H - 28 - stripeH, W - 56, stripeH);
 
-      // 3. Royal Navy & Gold Double Frame
       ctx.strokeStyle = "#0f2557";
       ctx.lineWidth = 6;
       ctx.strokeRect(28, 28, W - 56, H - 56);
@@ -395,15 +404,12 @@
       drawCornerOrnament(W - 54, H - 82, Math.PI);
       drawCornerOrnament(54, H - 82, -Math.PI / 2);
 
-      // 4. Watermark Ashoka Chakra
-      drawAshokaChakra(W / 2, H / 2 + 25, 220, 0.055);
+      drawAshokaChakra(W / 2, H / 2 + 15, 220, 0.055);
 
-      // 5. College Logo (Top Left) & Emblem/Badge (Top Right)
       if (cleanLogoCanvas) {
         ctx.drawImage(cleanLogoCanvas, 95, 92, 165, 145);
       }
 
-      // 6. Institutional Header
       ctx.textAlign = "center";
       ctx.fillStyle = "#0f2557";
       ctx.font = "800 40px 'Cinzel', serif";
@@ -413,7 +419,6 @@
       ctx.font = "600 22px 'Noto Sans Devanagari', sans-serif";
       ctx.fillText("चित्तौड़गढ़ (राजस्थान) • तमसो मा ज्योतिर्गमय", W / 2 + 45, 182);
 
-      // Divider line under header
       ctx.strokeStyle = "#d97706";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -421,40 +426,35 @@
       ctx.lineTo(W - 140, 205);
       ctx.stroke();
 
-      // 7. Certificate Title Banner
       ctx.fillStyle = "#ea580c";
       ctx.font = "700 44px 'Tiro Devanagari Hindi', serif";
-      ctx.fillText("संविधान दिवस – 2026 | शपथ प्रमाण पत्र", W / 2, 275);
+      ctx.fillText("संविधान दिवस – 2026 | शपथ प्रमाण पत्र", W / 2, 272);
 
       ctx.fillStyle = "#1e3a8a";
       ctx.font = "700 23px 'Cinzel', serif";
-      ctx.fillText("CERTIFICATE OF CONSTITUTION PLEDGE", W / 2, 312);
+      ctx.fillText("CERTIFICATE OF CONSTITUTION PLEDGE", W / 2, 309);
 
-      // 8. Recipient Salutation & Name
       ctx.fillStyle = "#334155";
       ctx.font = "27px 'Tiro Devanagari Hindi', serif";
-      ctx.fillText("यह प्रमाणित किया जाता है कि", W / 2, 375);
+      ctx.fillText("यह प्रमाणित किया जाता है कि", W / 2, 370);
 
       const displayName = nameInput.value.trim() || "आपका शुभ नाम / YOUR NAME";
       ctx.fillStyle = "#0f172a";
       ctx.font = "bold 56px 'Playfair Display', 'Tiro Devanagari Hindi', serif";
-      ctx.fillText(displayName, W / 2, 448);
+      ctx.fillText(displayName, W / 2, 442);
 
-      // Elegant Gold Underline below Name
       const nameWidth = Math.min(Math.max(ctx.measureText(displayName).width + 120, 460), 1080);
       ctx.strokeStyle = "#b45309";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(W / 2 - nameWidth / 2, 468);
-      ctx.lineTo(W / 2 + nameWidth / 2, 468);
+      ctx.moveTo(W / 2 - nameWidth / 2, 462);
+      ctx.lineTo(W / 2 + nameWidth / 2, 462);
       ctx.stroke();
 
-      // Category tag
       ctx.fillStyle = "#15803d";
       ctx.font = "600 22px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText(`(${roleInput.value})`, W / 2, 505);
+      ctx.fillText(`(${roleInput.value})`, W / 2, 498);
 
-      // 9. Hindi Pledge Citation Body
       ctx.fillStyle = "#1e293b";
       ctx.font = "26px 'Tiro Devanagari Hindi', serif";
       const lines = [
@@ -464,65 +464,92 @@
         "अक्षुण्ण बनाए रखने का संकल्प लिया है।"
       ];
       lines.forEach((line, idx) => {
-        ctx.fillText(line, W / 2, 565 + idx * 42);
+        ctx.fillText(line, W / 2, 556 + idx * 41);
       });
 
-      // 10. Footer: Date & Certificate ID (Left) + Principal Signature (Right)
+      // Left: Date & Certificate ID
       ctx.textAlign = "left";
       ctx.fillStyle = "#334155";
-      ctx.font = "600 22px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText("दिनांक (Date): 26 नवम्बर 2026", 120, 885);
+      ctx.font = "600 21px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("दिनांक (Date): 26 नवम्बर 2026", 110, 885);
 
       ctx.fillStyle = "#64748b";
-      ctx.font = "600 19px monospace";
-      ctx.fillText("Certificate ID: " + (issuedCertId || "RNT-CONST26-PREVIEW"), 120, 922);
+      ctx.font = "600 18px monospace";
+      ctx.fillText("Certificate ID: " + (issuedCertId || "RNT-CONST26-PREVIEW"), 110, 920);
 
-      // Gold Emblem Seal near center-bottom
+      // Center Seal
+      const sealX = W / 2 - 40;
       ctx.save();
       ctx.beginPath();
-      ctx.arc(W / 2, 875, 58, 0, Math.PI * 2);
+      ctx.arc(sealX, 875, 54, 0, Math.PI * 2);
       ctx.fillStyle = "#fef3c7";
       ctx.fill();
       ctx.lineWidth = 3;
       ctx.strokeStyle = "#b45309";
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(W / 2, 875, 48, 0, Math.PI * 2);
+      ctx.arc(sealX, 875, 44, 0, Math.PI * 2);
       ctx.setLineDash([4, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.textAlign = "center";
       ctx.fillStyle = "#92400e";
-      ctx.font = "bold 15px 'Cinzel', serif";
-      ctx.fillText("SAMVIDHAN", W / 2, 868);
-      ctx.fillText("DIWAS", W / 2, 886);
-      ctx.font = "bold 14px sans-serif";
-      ctx.fillText("2026", W / 2, 905);
+      ctx.font = "bold 14px 'Cinzel', serif";
+      ctx.fillText("SAMVIDHAN", sealX, 868);
+      ctx.fillText("DIWAS", sealX, 885);
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillText("2026", sealX, 903);
       ctx.restore();
 
-      // Principal Signature Block (Right)
-      const signCenterX = W - 290;
-      if (cleanSignCanvas) {
-        ctx.drawImage(cleanSignCanvas, signCenterX - 115, 765, 230, 115);
+      // MD Signature Block (Dr. Vaseem Khan)
+      const mdSignX = W / 2 + 235;
+      if (cleanMdSignCanvas) {
+        ctx.drawImage(cleanMdSignCanvas, mdSignX - 100, 770, 200, 105);
       }
       ctx.strokeStyle = "#0f2557";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.moveTo(signCenterX - 165, 892);
-      ctx.lineTo(signCenterX + 165, 892);
+      ctx.moveTo(mdSignX - 145, 882);
+      ctx.lineTo(mdSignX + 145, 882);
       ctx.stroke();
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#0f2557";
-      ctx.font = "bold 24px 'Playfair Display', serif";
-      ctx.fillText("Dr. S.N.A. Jaferry", signCenterX, 925);
+      ctx.font = "bold 21px 'Playfair Display', serif";
+      ctx.fillText("Dr. Vaseem Khan", mdSignX, 910);
 
       ctx.fillStyle = "#334155";
-      ctx.font = "600 20px 'Noto Sans Devanagari', sans-serif";
-      ctx.fillText("Principal, R.N.T. Group of Colleges, Kapasan", signCenterX, 955);
+      ctx.font = "600 17px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("Managing Director, R.N.T. Group of Colleges", mdSignX, 936);
+
+      // Principal Signature Block (Dr. S.N.A. Jaferry)
+      const signCenterX = W - 245;
+      if (cleanSignCanvas) {
+        ctx.drawImage(cleanSignCanvas, signCenterX - 100, 770, 200, 105);
+      }
+      ctx.strokeStyle = "#0f2557";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(signCenterX - 145, 882);
+      ctx.lineTo(signCenterX + 145, 882);
+      ctx.stroke();
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#0f2557";
+      ctx.font = "bold 21px 'Playfair Display', serif";
+      ctx.fillText("Dr. S.N.A. Jaferry", signCenterX, 910);
+
+      ctx.fillStyle = "#334155";
+      ctx.font = "600 17px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText("Principal, R.N.T. Group of Colleges, Kapasan", signCenterX, 936);
+
+      // Bottom small department credit note
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#64748b";
+      ctx.font = "500 16px 'Playfair Display', sans-serif";
+      ctx.fillText("Certificates are generated by CS Department RNT PG College, Kapasan", W / 2, 1048);
     }
 
-    // Real-time canvas update as user types or changes role
     nameInput.addEventListener("input", drawCertificate);
     roleInput.addEventListener("change", drawCertificate);
 
@@ -586,7 +613,6 @@
       link.click();
     });
 
-    // Initial render
     document.fonts.ready.then(drawCertificate);
     drawCertificate();
   </script>
